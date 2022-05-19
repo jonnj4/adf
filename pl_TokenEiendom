@@ -1,0 +1,91 @@
+{
+    "name": "pl_tokenEiendom",
+    "properties": {
+        "description": "test oppslag mot eiendomsAPI",
+        "activities": [
+            {
+                "name": "Token",
+                "type": "WebActivity",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://login.microsoftonline.com/dd1a5a82-b9cc-4855-96d0-98e8dd7e7055/oauth2/token",
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    "body": {
+                        "value": "grant_type=client_credentials&\nresource=09e1dab6-0e89-4b27-b346-93d78a89c2c0&\nclient_id=2616c02a-8262-4a36-b66c-687c69b2f56a&\nclient_secret=J~ojQAW-.CSI~zM78T-Q24~b5cPWXHTb03",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Set token variable",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "Token",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "token",
+                    "value": {
+                        "value": "@activity('Token').output.access_token",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "REST eiendommer",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "Set token variable",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://qa.api.statsbygg.no/eiendom/v2/eiendommer",
+                    "method": "GET",
+                    "headers": {
+                        "Ocp-Apim-Subscription-Key": "5fa7a5e98c1e4e30a7a049bf268f9b5a",
+                        "Authorization": {
+                            "value": "@concat('Bearer ',variables('token'))",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            }
+        ],
+        "variables": {
+            "token": {
+                "type": "String"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2022-05-18T12:29:53Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}
